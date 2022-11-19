@@ -6,6 +6,7 @@ import budgetsolve.pojo.auth.LoginRequest;
 import budgetsolve.pojo.auth.LoginResponse;
 import budgetsolve.pojo.register.RegisterRequest;
 import budgetsolve.repository.UserRepository;
+import budgetsolve.services.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Random;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -37,6 +39,9 @@ public class AuthController {
     PasswordEncoder passwordEncoder;
     @Autowired
     JwtUtils jwtUtils;
+
+    @Autowired
+    EmailService emailService;
 
     @PostMapping("/authorise")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
@@ -66,6 +71,27 @@ public class AuthController {
             return new ResponseEntity<>("User was created successfully", HttpStatus.OK);
         } catch (Exception ex){
             return new ResponseEntity<>("Error while creating user", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/reming-password")
+    public ResponseEntity<?> remindPassword(@RequestBody String email) {
+        try {
+            User user = userRepository.getUserByEmail(email);
+            if(user != null){
+                Random r = new Random();
+                StringBuilder code = new StringBuilder();
+                for(int i = 0; i < 4; i++){
+                    code.append(r.nextInt(9));
+                }
+                user.setPassword(String.valueOf(code));
+                userRepository.save(user);
+                emailService.sendEmail(email, String.valueOf(code));
+                return new ResponseEntity<>("The letter was sent", HttpStatus.OK);
+            }
+            return new ResponseEntity<>("User wasn't found", HttpStatus.BAD_REQUEST);
+        } catch (Exception ex){
+            return new ResponseEntity<>("User wasn't found", HttpStatus.BAD_REQUEST);
         }
     }
 
