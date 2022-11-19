@@ -20,11 +20,24 @@ public class User {
 
     private String email;
 
+    private String password;
+
     @ManyToOne
     private Company company;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    public User(String name, String email, String password, Role role) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+    }
 
+    public User(String name, String email, String password) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+    }
 }
